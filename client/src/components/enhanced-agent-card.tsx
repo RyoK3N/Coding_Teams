@@ -1,318 +1,190 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
+  ChevronDown, 
+  ChevronUp, 
   Bot, 
+  FileText, 
   Clock, 
   CheckCircle, 
-  AlertCircle, 
-  Play, 
-  FileText, 
-  Activity,
-  ChevronDown,
-  ChevronUp,
+  XCircle, 
   Loader2,
-  Zap,
-  Brain,
-  Code,
-  Database,
-  Shield,
-  Server,
-  TestTube,
-  Palette
+  Play,
+  Pause
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { Agent } from '@shared/schema';
+import type { AgentStatus, ArtifactFile, LogEntry } from '@/types/agent';
 
 interface EnhancedAgentCardProps {
-  agent: Agent;
-  logs?: string[];
-  artifacts?: any[];
-  isActive?: boolean;
-  className?: string;
+  agent: AgentStatus;
+  artifacts?: ArtifactFile[];
+  logs?: LogEntry[];
+  onArtifactSelect?: (artifact: ArtifactFile) => void;
 }
-
-// Agent type to icon mapping
-const agentIcons = {
-  principle: Brain,
-  backend: Server,
-  frontend: Palette,
-  database: Database,
-  api: Zap,
-  test: TestTube,
-  devops: Server,
-  security: Shield,
-  specialist: Code
-};
-
-// Status colors
-const statusColors = {
-  idle: 'bg-gray-100 text-gray-700 border-gray-300',
-  running: 'bg-blue-100 text-blue-700 border-blue-300 animate-pulse',
-  succeeded: 'bg-green-100 text-green-700 border-green-300',
-  failed: 'bg-red-100 text-red-700 border-red-300'
-};
-
-const statusIcons = {
-  idle: Clock,
-  running: Loader2,
-  succeeded: CheckCircle,
-  failed: AlertCircle
-};
 
 export function EnhancedAgentCard({ 
   agent, 
-  logs = [], 
   artifacts = [], 
-  isActive = false,
-  className 
+  logs = [], 
+  onArtifactSelect 
 }: EnhancedAgentCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [animatedProgress, setAnimatedProgress] = useState(0);
+  const [isLogsExpanded, setIsLogsExpanded] = useState(false);
+  const [isArtifactsExpanded, setIsArtifactsExpanded] = useState(false);
 
-  const IconComponent = agentIcons[agent.type] || Code;
-  const StatusIcon = statusIcons[agent.status];
-
-  // Animate progress changes
-  useEffect(() => {
-    if (agent.progress !== undefined) {
-      const timer = setTimeout(() => {
-        setAnimatedProgress(agent.progress || 0);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [agent.progress]);
-
-  // Card hover and click animations
-  const cardVariants = {
-    idle: { 
-      scale: 1, 
-      boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
-      borderColor: "transparent"
-    },
-    hover: { 
-      scale: 1.02,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)",
-      borderColor: isActive ? "#3B82F6" : "rgba(59, 130, 246, 0.2)"
-    },
-    active: {
-      scale: 1,
-      boxShadow: "0 0 0 2px #3B82F6, 0 4px 12px rgba(59, 130, 246, 0.25)",
-      borderColor: "#3B82F6"
+  const getStatusIcon = () => {
+    switch (agent.status) {
+      case 'running':
+        return <Loader2 className="h-4 w-4 animate-spin text-blue-600" />;
+      case 'succeeded':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'idle':
+        return <Pause className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
     }
   };
 
+  const getStatusBadge = () => {
+    switch (agent.status) {
+      case 'running':
+        return <Badge className="bg-blue-100 text-blue-800">Running</Badge>;
+      case 'succeeded':
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'failed':
+        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
+      case 'idle':
+        return <Badge className="bg-gray-100 text-gray-800">Idle</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">Pending</Badge>;
+    }
+  };
+
+  const agentLogs = logs.filter(log => log.agentId === agent.id).slice(-10);
+  const agentArtifacts = artifacts.filter(artifact => artifact.agentId === agent.id);
+
   return (
     <motion.div
-      className={`relative ${className}`}
-      variants={cardVariants}
-      initial="idle"
-      whileHover="hover"
-      animate={isActive ? "active" : "idle"}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <Card className="h-full border-2 transition-colors duration-200">
-        {/* Status indicator bar */}
-        <motion.div
-          className={`h-1 w-full ${
-            agent.status === 'running' ? 'bg-blue-500' : 
-            agent.status === 'succeeded' ? 'bg-green-500' : 
-            agent.status === 'failed' ? 'bg-red-500' : 'bg-gray-300'
-          }`}
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          transition={{ duration: 0.5 }}
-        />
-
+      <Card className="h-full">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <motion.div
-                className={`p-2 rounded-lg ${
-                  agent.status === 'running' ? 'bg-blue-100' :
-                  agent.status === 'succeeded' ? 'bg-green-100' :
-                  agent.status === 'failed' ? 'bg-red-100' : 'bg-gray-100'
-                }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <IconComponent className={`w-5 h-5 ${
-                  agent.status === 'running' ? 'text-blue-600' :
-                  agent.status === 'succeeded' ? 'text-green-600' :
-                  agent.status === 'failed' ? 'text-red-600' : 'text-gray-600'
-                }`} />
-              </motion.div>
-              
+              <div className="relative">
+                <Bot className="h-8 w-8 text-primary" />
+                <div className="absolute -top-1 -right-1">
+                  {getStatusIcon()}
+                </div>
+              </div>
               <div>
                 <CardTitle className="text-lg">{agent.name}</CardTitle>
                 <p className="text-sm text-muted-foreground">{agent.role}</p>
               </div>
             </div>
-
-            <div className="flex items-center space-x-2">
-              <Badge 
-                variant="outline" 
-                className={statusColors[agent.status]}
-              >
-                <StatusIcon className={`w-3 h-3 mr-1 ${
-                  agent.status === 'running' ? 'animate-spin' : ''
-                }`} />
-                {agent.status}
-              </Badge>
-              
-              {/* Activity pulse */}
-              {agent.status === 'running' && (
-                <motion.div
-                  className="w-3 h-3 bg-blue-400 rounded-full"
-                  animate={{ 
-                    scale: [1, 1.5, 1],
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{ 
-                    duration: 2, 
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              )}
-            </div>
+            {getStatusBadge()}
           </div>
-
-          {/* Progress bar */}
-          {agent.progress !== undefined && (
-            <div className="mt-3">
-              <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                <span>Progress</span>
-                <span>{Math.round(animatedProgress)}%</span>
-              </div>
-              <Progress 
-                value={animatedProgress} 
-                className="h-2"
-              />
-            </div>
-          )}
-
-          {/* Current step */}
-          {agent.currentStep && (
-            <motion.div
-              className="mt-2 text-sm text-muted-foreground flex items-center space-x-1"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Activity className="w-3 h-3" />
-              <span>{agent.currentStep}</span>
-            </motion.div>
-          )}
         </CardHeader>
 
-        <CardContent className="pt-0">
-          {/* Stats */}
-          <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
-            <div className="flex items-center space-x-1">
-              <FileText className="w-3 h-3" />
-              <span>{artifacts.length} files</span>
+        <CardContent className="space-y-4">
+          {/* Progress */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>Progress</span>
+              <span>{agent.progress}%</span>
             </div>
-            
-            {agent.completionTime && (
-              <div className="flex items-center space-x-1">
-                <Clock className="w-3 h-3" />
-                <span>{Math.round((agent.completionTime - new Date(agent.createdAt).getTime()) / 1000)}s</span>
-              </div>
-            )}
+            <Progress value={agent.progress} className="h-2" />
           </div>
 
-          {/* Expandable logs section */}
-          <Collapsible 
-            open={isExpanded} 
-            onOpenChange={setIsExpanded}
-          >
-            <CollapsibleTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-between p-2 h-8"
-              >
-                <span className="flex items-center space-x-1">
-                  <Activity className="w-3 h-3" />
-                  <span>Activity ({logs.length})</span>
-                </span>
-                <motion.div
-                  animate={{ rotate: isExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </motion.div>
-              </Button>
-            </CollapsibleTrigger>
+          {/* Current Step */}
+          {agent.currentStep && (
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm font-medium">Current Step:</p>
+              <p className="text-sm text-muted-foreground">{agent.currentStep}</p>
+            </div>
+          )}
 
-            <CollapsibleContent>
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ScrollArea className="h-32 w-full border rounded mt-2">
-                  <div className="p-2 space-y-1">
-                    <AnimatePresence>
-                      {logs.length === 0 ? (
-                        <motion.div
-                          className="text-xs text-muted-foreground text-center py-4"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                        >
-                          No activity yet...
-                        </motion.div>
-                      ) : (
-                        logs.slice(-20).map((log, index) => (
-                          <motion.div
-                            key={index}
-                            className="text-xs font-mono bg-muted/50 p-1 rounded break-all"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.02 }}
-                          >
-                            {log}
-                          </motion.div>
-                        ))
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </ScrollArea>
-              </motion.div>
-            </CollapsibleContent>
-          </Collapsible>
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="text-center p-2 bg-muted rounded">
+              <p className="font-medium">{agent.filesCreated || 0}</p>
+              <p className="text-muted-foreground">Files</p>
+            </div>
+            <div className="text-center p-2 bg-muted rounded">
+              <p className="font-medium">{agent.completionTime || 0}s</p>
+              <p className="text-muted-foreground">Time</p>
+            </div>
+          </div>
 
-          {/* Artifact preview */}
-          {artifacts.length > 0 && (
-            <motion.div
-              className="mt-3 p-2 bg-muted/30 rounded-lg"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="text-xs font-medium text-muted-foreground mb-1">
-                Latest Files:
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {artifacts.slice(-3).map((artifact, index) => (
-                  <motion.div
-                    key={artifact.id || index}
-                    className="text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded border"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+          {/* Artifacts */}
+          {agentArtifacts.length > 0 && (
+            <Collapsible open={isArtifactsExpanded} onOpenChange={setIsArtifactsExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-2">
+                  <span className="flex items-center space-x-2">
+                    <FileText className="h-4 w-4" />
+                    <span>Artifacts ({agentArtifacts.length})</span>
+                  </span>
+                  {isArtifactsExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-1">
+                {agentArtifacts.map((artifact) => (
+                  <Button
+                    key={artifact.id}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-left"
+                    onClick={() => onArtifactSelect?.(artifact)}
                   >
-                    {artifact.filePath?.split('/').pop() || 'unnamed'}
-                  </motion.div>
+                    <FileText className="h-4 w-4 mr-2" />
+                    <span className="truncate">{artifact.fileName}</span>
+                  </Button>
                 ))}
-              </div>
-            </motion.div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* Logs */}
+          {agentLogs.length > 0 && (
+            <Collapsible open={isLogsExpanded} onOpenChange={setIsLogsExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-2">
+                  <span>Recent Logs ({agentLogs.length})</span>
+                  {isLogsExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-1 max-h-32 overflow-y-auto">
+                {agentLogs.map((log) => (
+                  <div key={log.id} className="text-xs p-2 bg-muted rounded">
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs">
+                        {log.level}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        {log.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground">{log.message}</p>
+                  </div>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </CardContent>
       </Card>

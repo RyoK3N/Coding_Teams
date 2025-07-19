@@ -1,15 +1,57 @@
-import type { Agent, Session, AgentEvent, Artifact } from '@shared/schema';
-
-export interface SessionData extends Session {
-  // Extended session data
+// Simplified types for frontend use
+export interface SessionData {
+  id: string;
+  userId: string;
+  prompt: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  includeTests: boolean;
+  includeDocumentation: boolean;
+  outputDir: string;
+  duration?: number;
+  filesCreated?: number;
+  workPackagesTotal?: number;
+  workPackagesCompleted?: number;
+  metrics?: any;
 }
 
-export interface AgentStatus extends Agent {
-  // Extended agent status
+export interface AgentStatus {
+  id: string;
+  sessionId: string;
+  name: string;
+  role: string;
+  type: string;
+  status: string;
+  progress: number;
+  currentStep?: string;
+  workPackageId?: string;
+  filesCreated?: number;
+  completionTime?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ArtifactFile extends Artifact {
-  // Extended artifact data
+export interface ArtifactFile {
+  id: string;
+  sessionId: string;
+  agentId: string;
+  filePath: string;
+  fileName: string;
+  language: string;
+  content: string;
+  size: number;
+  createdAt: string;
+}
+
+export interface AgentEvent {
+  id: string;
+  sessionId: string;
+  agentId: string;
+  type: string;
+  sequence: number;
+  timestamp: string;
+  payload: any;
 }
 
 export interface LogEntry {
@@ -27,5 +69,3 @@ export interface WebSocketMessage {
   sessionId?: string;
   data?: any;
 }
-
-export { AgentEvent };
