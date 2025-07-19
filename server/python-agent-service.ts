@@ -57,18 +57,18 @@ export class PythonAgentService {
       if (options.includeDocumentation) pythonCmd.push('--include-docs');
 
       // Start the Python process
-      const process = spawn(pythonCmd[0], pythonCmd.slice(1), {
+      const pythonProcess = spawn(pythonCmd[0], pythonCmd.slice(1), {
         cwd: process.env.CODING_TEAMS_PATH || './coding_teams',
         stdio: ['pipe', 'pipe', 'pipe']
       });
 
-      this.activeProcesses.set(sessionId, process);
+      this.activeProcesses.set(sessionId, pythonProcess);
 
       // Handle real-time output
-      this.handlePythonProcessOutput(sessionId, process, agents);
+      this.handlePythonProcessOutput(sessionId, pythonProcess, agents);
 
       // Handle process completion
-      process.on('close', async (code) => {
+      pythonProcess.on('close', async (code) => {
         this.activeProcesses.delete(sessionId);
         await this.handleProcessCompletion(sessionId, code, outputDir);
       });

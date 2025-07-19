@@ -3,17 +3,70 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { pythonAgentService } from "./python-agent-service";
-import { insertSessionSchema, insertAgentEventSchema, type LogPayload, type ProgressPayload, type ArtifactPayload } from "@shared/schema";
+import { insertSessionSchema, insertAgentEventSchema, loginSchema, type LogPayload, type ProgressPayload, type ArtifactPayload } from "@shared/schema";
 import { z } from "zod";
 import { randomUUID } from "crypto";
+import { authService } from "./auth";
+import { requireAuth, type AuthRequest } from "./middleware/auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
+  // Initialize admin user on startup
+  await authService.createAdminUser();
+
+  // Auth Routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const credentials = loginSchema.parse(req.body);
+      const result = await authService.login(credentials.username, credentials.password);
+      
+      if (!result) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+
+      const { user, token } = result;
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          email: user.email,
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.get("/api/auth/me", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        email: user.email,
+      });
+    } catch (error) {
+      console.error('Get user error:', error);
+      res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
   // REST API Routes
   
-  // Create a new session
-  app.post("/api/sessions", async (req, res) => {
+  // Create a new session (protected)
+  app.post("/api/sessions", requireAuth, async (req: AuthRequest, res) => {
     try {
       const sessionData = insertSessionSchema.parse(req.body);
       
@@ -22,6 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const session = await storage.createSession({
         ...sessionData,
+        userId: req.user!.id,
         outputDir,
       });
       
@@ -48,8 +102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get session by ID
-  app.get("/api/sessions/:id", async (req, res) => {
+  // Get session by ID (protected)
+  app.get("/api/sessions/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
       const session = await storage.getSession(req.params.id);
       if (!session) {
@@ -61,8 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all sessions
-  app.get("/api/sessions", async (req, res) => {
+  // Get all sessions (protected)
+  app.get("/api/sessions", requireAuth, async (req: AuthRequest, res) => {
     try {
       const sessions = await storage.getSessions();
       res.json(sessions);
@@ -71,8 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get agents for a session
-  app.get("/api/sessions/:id/agents", async (req, res) => {
+  // Get agents for a session (protected)
+  app.get("/api/sessions/:id/agents", requireAuth, async (req: AuthRequest, res) => {
     try {
       const agents = await storage.getAgentsBySession(req.params.id);
       res.json(agents);
@@ -81,8 +135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get events for a session
-  app.get("/api/sessions/:id/events", async (req, res) => {
+  // Get events for a session (protected)
+  app.get("/api/sessions/:id/events", requireAuth, async (req: AuthRequest, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 1000;
       const offset = parseInt(req.query.offset as string) || 0;
@@ -93,8 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get artifacts for a session
-  app.get("/api/sessions/:id/artifacts", async (req, res) => {
+  // Get artifacts for a session (protected)
+  app.get("/api/sessions/:id/artifacts", requireAuth, async (req: AuthRequest, res) => {
     try {
       const artifacts = await storage.getArtifactsBySession(req.params.id);
       res.json(artifacts);
