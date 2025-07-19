@@ -25,7 +25,6 @@ import {
   Palette,
   Loader2
 } from 'lucide-react';
-import { insertSessionSchema, type InsertSession } from '@shared/schema';
 import { z } from 'zod';
 
 interface ModernSessionFormProps {
@@ -37,17 +36,10 @@ interface ModernSessionFormProps {
   isLoading?: boolean;
 }
 
-const formSchema = insertSessionSchema.omit({ 
-  id: true, 
-  outputDir: true, 
-  status: true, 
-  createdAt: true, 
-  updatedAt: true,
-  duration: true,
-  filesCreated: true,
-  workPackagesTotal: true,
-  workPackagesCompleted: true,
-  metrics: true
+const formSchema = z.object({
+  prompt: z.string().min(10, "Prompt must be at least 10 characters"),
+  includeTests: z.boolean().default(false),
+  includeDocumentation: z.boolean().default(false),
 });
 
 const agentSpecs = [
