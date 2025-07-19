@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bot, Lock, User, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { auth } from '@/lib/auth';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -22,7 +22,6 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,20 +48,13 @@ export default function Login() {
       // Store the token and user data
       auth.setAuth(result.token, result.user);
 
-      toast({
-        title: 'Welcome back!',
-        description: `Logged in as ${result.user.username}`,
-      });
+      console.log('Login successful:', result.user.username);
 
       // Redirect to home
       setLocation('/');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Login failed');
-      toast({
-        title: 'Login failed',
-        description: error instanceof Error ? error.message : 'Please try again',
-        variant: 'destructive',
-      });
+      console.error('Login failed:', error);
     } finally {
       setIsLoading(false);
     }
