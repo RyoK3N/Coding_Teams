@@ -112,20 +112,26 @@ function Router() {
   );
 }
 
-function App() {
+function AppContent() {
   const [location] = useLocation();
   const showHeader = location !== '/login';
 
   return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {showHeader && <Header />}
+      <main className={showHeader ? "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" : ""}>
+        <Router />
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-            {showHeader && <Header />}
-            <main className={showHeader ? "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" : ""}>
-              <Router />
-            </main>
-          </div>
+          <AppContent />
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>

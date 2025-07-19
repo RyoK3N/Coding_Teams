@@ -28,7 +28,8 @@ export const auth = {
   logout(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    // Use a more reliable redirect method
+    window.location.replace('/login');
   },
 
   setAuth(token: string, user: AuthUser): void {
