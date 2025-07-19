@@ -1,134 +1,171 @@
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Download, Pause, RefreshCw, Play } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import type { SessionData } from '@/types/agent';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Play, 
+  Pause, 
+  Square, 
+  RotateCcw, 
+  Download, 
+  Clock, 
+  Users, 
+  FileText,
+  Activity
+} from 'lucide-react';
+import type { Session } from '@shared/schema';
 
 interface GlobalStatusBarProps {
-  session: SessionData;
+  session: Session;
   onDownload: () => void;
   onPause: () => void;
   onRegenerate: () => void;
 }
 
-export function GlobalStatusBar({ session, onDownload, onPause, onRegenerate }: GlobalStatusBarProps) {
-  const { metrics } = session;
-  const overallProgress = metrics.totalTasks > 0 
-    ? Math.round((metrics.completedTasks / metrics.totalTasks) * 100)
-    : 0;
+export function GlobalStatusBar({ 
+  session, 
+  onDownload, 
+  onPause, 
+  onRegenerate 
+}: GlobalStatusBarProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'running':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'failed':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'analyzing':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
-  const getStatusBadge = () => {
+  const getStatusIcon = () => {
     switch (session.status) {
       case 'running':
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-            <Play className="mr-1 h-3 w-3" />
-            Running
-          </Badge>
-        );
+        return <Activity className="w-4 h-4 animate-pulse" />;
       case 'completed':
-        return (
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-            Completed
-          </Badge>
-        );
+        return <Play className="w-4 h-4" />;
       case 'failed':
-        return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-            Failed
-          </Badge>
-        );
+        return <Square className="w-4 h-4" />;
       default:
-        return (
-          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-            Pending
-          </Badge>
-        );
+        return <Clock className="w-4 h-4" />;
     }
   };
 
   return (
-    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <CardTitle className="text-gray-900 dark:text-white">
-            Session: <span className="text-primary">{session.id.slice(0, 12)}...</span>
-          </CardTitle>
-          <div className="flex items-center space-x-2">
-            {getStatusBadge()}
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Started {formatDistanceToNow(new Date(session.createdAt))} ago
-            </span>
-          </div>
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-primary/20">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            {/* Status and Info */}
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <motion.div
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg border ${getStatusColor(session.status)}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  {getStatusIcon()}
+                  <span className="font-medium capitalize">{session.status}</span>
+                </motion.div>
+                
+                <div className="text-sm text-muted-foreground">
+                  Session: {session.id.slice(0, 8)}...
+                </div>
+              </div>
 
-        {/* Progress Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {metrics.totalTasks}
+              {/* Metrics */}
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span>8 Agents</span>
+                </div>
+                
+                <div className="flex items-center space-x-1">
+                  <FileText className="w-4 h-4 text-green-600" />
+                  <span>{session.filesCreated || 0} Files</span>
+                </div>
+                
+                {session.duration && (
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    <span>{Math.round(session.duration)}s</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total Tasks</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
-              {metrics.activeTasks}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">Active</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {metrics.completedTasks}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
-              {metrics.failedTasks}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">Failed</div>
-          </div>
-        </div>
 
-        {/* Overall Progress */}
-        <div className="mb-4">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-400">Overall Progress</span>
-            <span className="font-medium text-gray-900 dark:text-white">{overallProgress}%</span>
-          </div>
-          <Progress value={overallProgress} className="h-2" />
-        </div>
+            {/* Actions */}
+            <div className="flex items-center space-x-2">
+              {session.status === 'running' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onPause}
+                  className="text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+                >
+                  <Pause className="w-4 h-4 mr-1" />
+                  Pause
+                </Button>
+              )}
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end space-x-3">
-          <Button
-            variant="ghost"
-            onClick={onPause}
-            disabled={session.status !== 'running'}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-          >
-            <Pause className="mr-2 h-4 w-4" />
-            Pause
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={onDownload}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download Artifacts
-          </Button>
-          <Button
-            onClick={onRegenerate}
-            className="bg-accent-500 hover:bg-accent-600 text-white"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Regenerate
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRegenerate}
+                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Regenerate
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onDownload}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Download All
+              </Button>
+            </div>
+          </div>
+
+          {/* Progress bar for running sessions */}
+          {session.status === 'running' && session.workPackagesTotal && (
+            <motion.div
+              className="mt-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                <span>Work Packages Progress</span>
+                <span>
+                  {session.workPackagesCompleted || 0} / {session.workPackagesTotal}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <motion.div
+                  className="bg-primary h-2 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ 
+                    width: `${((session.workPackagesCompleted || 0) / session.workPackagesTotal) * 100}%`
+                  }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

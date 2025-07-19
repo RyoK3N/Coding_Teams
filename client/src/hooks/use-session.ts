@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useWebSocket } from './use-websocket';
+// import { useWebSocket } from './use-websocket';
 import type { SessionData, AgentStatus, AgentEvent, ArtifactFile } from '@/types/agent';
 
 export function useSession(sessionId: string | null) {
   const queryClient = useQueryClient();
-  const { subscribe, subscribeToSession } = useWebSocket();
+  // const { subscribe, subscribeToSession } = useWebSocket();
   const [events, setEvents] = useState<AgentEvent[]>([]);
 
   // Fetch session data
@@ -27,25 +27,25 @@ export function useSession(sessionId: string | null) {
     enabled: !!sessionId,
   });
 
-  // Subscribe to real-time events
+  // Subscribe to real-time events - temporarily disabled for debugging
   useEffect(() => {
     if (!sessionId) return;
 
-    subscribeToSession(sessionId);
+    // subscribeToSession(sessionId);
 
-    const unsubscribe = subscribe('agent_event', (message: any) => {
-      if (message.event) {
-        setEvents(prev => [...prev, message.event]);
+    // const unsubscribe = subscribe('agent_event', (message: any) => {
+    //   if (message.event) {
+    //     setEvents(prev => [...prev, message.event]);
         
-        // Invalidate relevant queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ['/api/sessions', sessionId, 'agents'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/sessions', sessionId, 'artifacts'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/sessions', sessionId] });
-      }
-    });
+    //     // Invalidate relevant queries to refresh data
+    //     queryClient.invalidateQueries({ queryKey: ['/api/sessions', sessionId, 'agents'] });
+    //     queryClient.invalidateQueries({ queryKey: ['/api/sessions', sessionId, 'artifacts'] });
+    //     queryClient.invalidateQueries({ queryKey: ['/api/sessions', sessionId] });
+    //   }
+    // });
 
-    return unsubscribe;
-  }, [sessionId, subscribe, subscribeToSession, queryClient]);
+    // return unsubscribe;
+  }, [sessionId, queryClient]);
 
   // Create session mutation
   const createSessionMutation = useMutation({

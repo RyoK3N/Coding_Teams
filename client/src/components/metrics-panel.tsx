@@ -1,113 +1,179 @@
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
-import type { SessionMetrics } from '@/types/agent';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { 
+  BarChart3, 
+  TrendingUp, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle,
+  FileText,
+  Activity,
+  Zap
+} from 'lucide-react';
 
 interface MetricsPanelProps {
-  metrics: SessionMetrics;
-  eventCount?: number;
-  codeLines?: number;
-  filesGenerated?: number;
+  metrics?: {
+    totalTasks: number;
+    activeTasks: number;
+    completedTasks: number;
+    failedTasks: number;
+    avgCompletionTime?: number;
+    successRate?: number;
+    accuracyRate?: number;
+  };
+  eventCount: number;
+  codeLines: number;
+  filesGenerated: number;
 }
 
 export function MetricsPanel({ 
   metrics, 
-  eventCount = 0, 
-  codeLines = 0, 
-  filesGenerated = 0 
+  eventCount, 
+  codeLines, 
+  filesGenerated 
 }: MetricsPanelProps) {
-  const successRate = metrics.totalTasks > 0 
-    ? Math.round((metrics.completedTasks / metrics.totalTasks) * 100)
-    : 0;
-
-  const avgTaskTime = metrics.avgCompletionTime || 0;
-
-  // Simple timeline data for demonstration
-  const timelineData = Array.from({ length: 12 }, (_, i) => ({
-    height: Math.floor(Math.random() * 48) + 16,
-    isActive: i === 11,
-  }));
+  const completionRate = metrics ? 
+    (metrics.completedTasks / Math.max(metrics.totalTasks, 1)) * 100 : 0;
+  
+  const successRate = metrics?.successRate || 0;
 
   return (
-    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-      <CardHeader className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <CardTitle className="text-gray-900 dark:text-white">
-          <TrendingUp className="inline mr-2 h-5 w-5 text-primary" />
-          Session Metrics
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-lg font-bold text-gray-900 dark:text-white">
-              {avgTaskTime.toFixed(1)}s
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Avg Task Time
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600">
-              {successRate}%
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Success Rate
-            </div>
-          </div>
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center space-x-2 text-base">
+            <BarChart3 className="w-5 h-5 text-primary" />
+            <span>Session Metrics</span>
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Key Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <motion.div
+              className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center space-x-2">
+                <Activity className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium">Events</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-600">{eventCount}</div>
+            </motion.div>
 
-        {/* Timeline Chart */}
-        <div className="mb-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            Event Timeline
-          </div>
-          <div className="h-16 bg-gray-50 dark:bg-gray-900 rounded-lg p-2">
-            <div className="flex items-end justify-between h-full">
-              {timelineData.map((bar, index) => (
-                <div
-                  key={index}
-                  className={`w-1 rounded-t transition-all duration-300 ${
-                    bar.isActive 
-                      ? 'bg-green-500 animate-pulse' 
-                      : 'bg-primary'
-                  }`}
-                  style={{ height: `${bar.height}px` }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+            <motion.div
+              className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium">Files</span>
+              </div>
+              <div className="text-2xl font-bold text-green-600">{filesGenerated}</div>
+            </motion.div>
 
-        {/* Detailed Stats */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Log Events</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              {eventCount.toLocaleString()}
-            </span>
+            <motion.div
+              className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-purple-600" />
+                <span className="text-sm font-medium">Lines</span>
+              </div>
+              <div className="text-2xl font-bold text-purple-600">{codeLines}</div>
+            </motion.div>
+
+            <motion.div
+              className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-200 dark:border-orange-800"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-4 h-4 text-orange-600" />
+                <span className="text-sm font-medium">Success</span>
+              </div>
+              <div className="text-2xl font-bold text-orange-600">{Math.round(successRate)}%</div>
+            </motion.div>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Code Lines</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              {codeLines.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Files Generated</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              {filesGenerated}
-            </span>
-          </div>
-          {metrics.avgCompletionTime && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Avg Completion</span>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {metrics.avgCompletionTime.toFixed(1)}s
-              </span>
+
+          {/* Progress Bars */}
+          {metrics && (
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium">Task Completion</span>
+                  <span>{Math.round(completionRate)}%</span>
+                </div>
+                <Progress value={completionRate} className="h-2" />
+                <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                  <span>{metrics.completedTasks} completed</span>
+                  <span>{metrics.totalTasks} total</span>
+                </div>
+              </div>
+
+              {successRate > 0 && (
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium">Success Rate</span>
+                    <span>{Math.round(successRate)}%</span>
+                  </div>
+                  <Progress value={successRate} className="h-2" />
+                </div>
+              )}
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+
+          {/* Task Breakdown */}
+          {metrics && (
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-1 text-blue-600">
+                  <Clock className="w-3 h-3" />
+                  <span className="text-xs font-medium">Active</span>
+                </div>
+                <div className="text-sm font-bold">{metrics.activeTasks}</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-1 text-green-600">
+                  <CheckCircle className="w-3 h-3" />
+                  <span className="text-xs font-medium">Done</span>
+                </div>
+                <div className="text-sm font-bold">{metrics.completedTasks}</div>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-1 text-red-600">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span className="text-xs font-medium">Failed</span>
+                </div>
+                <div className="text-sm font-bold">{metrics.failedTasks}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Average Completion Time */}
+          {metrics?.avgCompletionTime && (
+            <div className="pt-2 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Avg. Completion Time</span>
+                <Badge variant="secondary">
+                  {Math.round(metrics.avgCompletionTime)}s
+                </Badge>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
