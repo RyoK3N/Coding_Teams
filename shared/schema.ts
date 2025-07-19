@@ -11,11 +11,16 @@ export const users = pgTable("users", {
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   prompt: text("prompt").notNull(),
-  status: text("status").notNull().default("pending"), // pending, running, completed, failed
+  status: text("status").notNull().default("pending"), // pending, analyzing, running, completed, failed
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   includeTests: boolean("include_tests").default(false),
   includeDocumentation: boolean("include_documentation").default(false),
+  outputDir: text("output_dir").notNull(), // Temp directory for generated code
+  duration: integer("duration"), // Total execution time in seconds
+  filesCreated: integer("files_created").default(0),
+  workPackagesTotal: integer("work_packages_total").default(0),
+  workPackagesCompleted: integer("work_packages_completed").default(0),
   metrics: jsonb("metrics").$type<{
     totalTasks: number;
     activeTasks: number;
@@ -23,6 +28,7 @@ export const sessions = pgTable("sessions", {
     failedTasks: number;
     avgCompletionTime?: number;
     successRate?: number;
+    accuracyRate?: number;
   }>(),
 });
 
@@ -31,10 +37,31 @@ export const agents = pgTable("agents", {
   sessionId: uuid("session_id").references(() => sessions.id).notNull(),
   name: text("name").notNull(),
   role: text("role").notNull(),
-  status: text("status").notNull().default("idle"), // idle, running, succeeded, failed
+  type: text("type").notNull().default("specialist"), // principle, specialist
+  status: text("status").notNull().default("idle"), // idle, analyzing, running, succeeded, failed
   progress: integer("progress").default(0),
+  currentStep: text("current_step"),
+  workPackageId: text("work_package_id"),
+  filesCreated: integer("files_created").default(0),
+  completionTime: integer("completion_time"), // Time in seconds
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const workPackages = pgTable("work_packages", {
+  id: text("id").primaryKey(), // WP001, WP002, etc.
+  sessionId: uuid("session_id").references(() => sessions.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  assignedAgentId: uuid("assigned_agent_id").references(() => agents.id),
+  status: text("status").notNull().default("pending"), // pending, in_progress, completed, failed
+  priority: integer("priority").default(1),
+  dependencies: jsonb("dependencies").$type<string[]>().default([]),
+  estimatedTime: integer("estimated_time"), // Estimated time in seconds
+  actualTime: integer("actual_time"), // Actual completion time
+  artifacts: jsonb("artifacts").$type<string[]>().default([]), // List of file paths created
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
 });
 
 export const agentEvents = pgTable("agent_events", {
@@ -92,6 +119,17 @@ export const insertArtifactSchema = createInsertSchema(artifacts).pick({
   checksum: true,
 });
 
+export const insertWorkPackageSchema = createInsertSchema(workPackages).pick({
+  id: true,
+  sessionId: true,
+  title: true,
+  description: true,
+  assignedAgentId: true,
+  priority: true,
+  dependencies: true,
+  estimatedTime: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -99,6 +137,8 @@ export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type Agent = typeof agents.$inferSelect;
 export type InsertAgent = z.infer<typeof insertAgentSchema>;
+export type WorkPackage = typeof workPackages.$inferSelect;
+export type InsertWorkPackage = z.infer<typeof insertWorkPackageSchema>;
 export type AgentEvent = typeof agentEvents.$inferSelect;
 export type InsertAgentEvent = z.infer<typeof insertAgentEventSchema>;
 export type Artifact = typeof artifacts.$inferSelect;

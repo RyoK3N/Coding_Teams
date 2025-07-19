@@ -2,8 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { pythonAgentService } from "./python-agent-service";
 import { insertSessionSchema, insertAgentEventSchema, type LogPayload, type ProgressPayload, type ArtifactPayload } from "@shared/schema";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -14,17 +16,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/sessions", async (req, res) => {
     try {
       const sessionData = insertSessionSchema.parse(req.body);
-      const session = await storage.createSession(sessionData);
       
-      // Create default agents for the session
-      const agents = [
-        { sessionId: session.id, name: "Principal Engineer", role: "Architecture & Design" },
-        { sessionId: session.id, name: "Python Specialist", role: "Core Implementation" },
-        { sessionId: session.id, name: "Test Specialist", role: "Quality Assurance" },
-      ];
+      // Generate output directory path
+      const outputDir = `temp/session_${Date.now()}_${randomUUID().slice(0, 8)}`;
       
-      for (const agentData of agents) {
-        await storage.createAgent(agentData);
+      const session = await storage.createSession({
+        ...sessionData,
+        outputDir,
+      });
+      
+      // Start the Python agent service
+      try {
+        await pythonAgentService.startCodingSession(session.id, sessionData.prompt, {
+          includeTests: sessionData.includeTests,
+          includeDocumentation: sessionData.includeDocumentation,
+          timeout: 300 // 5 minutes default timeout
+        });
+      } catch (agentError) {
+        console.error('Failed to start Python agents:', agentError);
+        // Update session to failed status but still return the session
+        await storage.updateSession(session.id, { status: 'failed' });
       }
       
       res.json(session);
@@ -32,6 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
+      console.error('Session creation error:', error);
       res.status(500).json({ message: "Failed to create session" });
     }
   });
@@ -88,6 +100,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(artifacts);
     } catch (error) {
       res.status(500).json({ message: "Failed to get artifacts" });
+    }
+  });
+
+  // Get work packages for a session
+  app.get("/api/sessions/:id/work-packages", async (req, res) => {
+    try {
+      const workPackages = await storage.getWorkPackagesBySession(req.params.id);
+      res.json(workPackages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get work packages" });
+    }
+  });
+
+  // Stop a running session
+  app.post("/api/sessions/:id/stop", async (req, res) => {
+    try {
+      await pythonAgentService.stopCodingSession(req.params.id);
+      await storage.updateSession(req.params.id, { status: 'failed' });
+      res.json({ message: "Session stopped" });
+    } catch (error) {
+      console.error('Failed to stop session:', error);
+      res.status(500).json({ message: "Failed to stop session" });
+    }
+  });
+
+  // Get session progress with real-time data
+  app.get("/api/sessions/:id/progress", async (req, res) => {
+    try {
+      const progress = await pythonAgentService.getSessionProgress(req.params.id);
+      res.json(progress);
+    } catch (error) {
+      console.error('Failed to get session progress:', error);
+      res.status(500).json({ message: "Failed to get session progress" });
     }
   });
 

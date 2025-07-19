@@ -3,9 +3,12 @@ import { useRoute } from 'wouter';
 import { useSession } from '@/hooks/use-session';
 import { GlobalStatusBar } from '@/components/global-status-bar';
 import { AgentGrid } from '@/components/agent-grid';
+import { EnhancedAgentCard } from '@/components/enhanced-agent-card';
 import { FileExplorer } from '@/components/file-explorer';
 import { CodeEditorPanel } from '@/components/code-editor-panel';
 import { MetricsPanel } from '@/components/metrics-panel';
+import { RealTimeLogStream } from '@/components/real-time-log-stream';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -166,14 +169,39 @@ export default function SessionPage() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left Column: Agent Grid */}
+        {/* Left Column: Enhanced Agent Cards */}
         <div className="xl:col-span-2">
-          <AgentGrid
-            agents={agents || []}
-            logs={logs}
-            artifacts={artifacts || []}
-            onArtifactClick={setSelectedArtifact}
-          />
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {(agents || []).map((agent, index) => {
+              const agentLogs = logs.filter(log => log.agentId === agent.id).map(log => log.message);
+              const agentArtifacts = artifacts?.filter(artifact => 
+                artifact.filePath?.toLowerCase().includes(agent.name.toLowerCase().split(' ')[0]) ||
+                artifact.filePath?.includes(agent.type)
+              ) || [];
+              
+              return (
+                <motion.div
+                  key={agent.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <EnhancedAgentCard
+                    agent={agent}
+                    logs={agentLogs}
+                    artifacts={agentArtifacts}
+                    isActive={agent.status === 'running'}
+                    className="h-full"
+                  />
+                </motion.div>
+              );
+            })}
+          </motion.div>
         </div>
 
         {/* Right Column: File Explorer, Code Editor, Metrics */}
@@ -187,6 +215,12 @@ export default function SessionPage() {
           <CodeEditorPanel
             artifacts={artifacts || []}
             selectedArtifact={selectedArtifact}
+          />
+
+          <RealTimeLogStream
+            events={events || []}
+            agents={agents || []}
+            className="mb-4"
           />
 
           <MetricsPanel

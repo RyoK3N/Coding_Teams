@@ -1,0 +1,146 @@
+~/workspace/Coding_Teams-Autogen$ python main.py solve "Create a REST API for managing a book library with add, delete, update, and search functionality" --timeout 5 --output-dir test_book_api
+╭───────────────────────────────────────────────── Execution Started ──────────────────────────────────────────────────╮
+│ 🎯 Problem Analysis Starting...                                                                                      │
+│                                                                                                                      │
+│ The multi-agent team is now analyzing your problem and                                                               │
+│ creating a comprehensive solution plan.                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:14,228 - cache_manager - INFO - Cache manager started with 5min write cycles
+2025-07-19 15:54:14,228 - agent_tools - INFO - Agent tools initialized
+2025-07-19 15:54:14,426 - coding_team - INFO - Initialized Principle Engineer and 7 smart coding agents
+╭──────────────────────────────────── 🎯 Next-Generation Software Engineering Team ────────────────────────────────────╮
+│ 🧠 Intelligent Multi-Agent Coding Team                                                                               │
+│                                                                                                                      │
+│ New Architecture:                                                                                                    │
+│ • Principle Software Engineer: Problem analysis & coordination                                                       │
+│ • Smart Coding Agents: Dynamic code generation                                                                       │
+│ • No Hardcoded Templates: Every solution is custom                                                                   │
+│ • Minimal File Structure: Only what's needed                                                                         │
+│ • Function-Level Design: Precise specifications                                                                      │
+│                                                                                                                      │
+│ Features:                                                                                                            │
+│ • Real-time Progress Tracking: True                                                                                  │
+│ • Intelligent Caching: True                                                                                          │
+│ • Code Analysis: True                                                                                                │
+│ • Batch Processing: 3 concurrent tasks                                                                               │
+│                                                                                                                      │
+│ Team: Principle Engineer + 7 specialists                                                                             │
+│ Workspace: test_book_api/workspace                                                                                   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:14,428 - workspace_manager - INFO - Minimal workspace initialized at test_book_api/workspace
+2025-07-19 15:54:14,428 - progress_tracker - INFO - Created task: project_20250719_155414 - Solve Software Problem
+2025-07-19 15:54:14,428 - progress_tracker - INFO - Started task: project_20250719_155414
+2025-07-19 15:54:14,428 - coding_team - INFO - Starting systematic problem analysis
+2025-07-19 15:54:14,428 - progress_tracker - INFO - Created task: principle_software_engineer_SYSTEMATIC_PROBLEM_SOLVING_20250719_155414 - SYSTEMATIC_PROBLEM_SOLVING
+2025-07-19 15:54:14,429 - progress_tracker - INFO - Started task: principle_software_engineer_SYSTEMATIC_PROBLEM_SOLVING_20250719_155414
+╭─ Principle Software Engineer (PSE) | STEP_START | Step SYSTEMATIC_PROBLEM_SOLVING Start ─╮
+│ Starting step: SYSTEMATIC_PROBLEM_SOLVING                                                │
+╰──────────────────────────────────────────────────────────────────────────────────────────╯
+╭────────────────────────────────────────────────── Progress Tracker ──────────────────────────────────────────────────╮
+│ <rich.table.Table object at 0x7fdd665a02d0>                                                                          │
+│                                                                                                                      │
+│ Overall Progress: 0.0%                                                                                               │
+╭────────────────────────────────────────────────── Progress Tracker ──────────────────────────────────────────────────╮
+│ <rich.table.Table object at 0x7fdd666dd310>                                                                          │
+│                                                                                                                      │
+│ Overall Progress: 0.0%                                                                                               │
+│ Active Tasks: 2                                                                                                      │
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/autogen/oai/anthropic.py:226: UserWarning: Streaming is 
+not currently supported, streaming will be disabled.
+  warnings.warn(
+╭────────────────────────────────────────────────── Progress Tracker ──────────────────────────────────────────────────╮
+│ <rich.table.Table object at 0x7fdd6658a010>                                                                          │
+│                                                                                                                      │
+│ Overall Progress: 0.0%                                                                                               │
+│ Active Tasks: 2                                                                                                      │
+╭────────────────────────────────────────────────── Progress Tracker ──────────────────────────────────────────────────╮
+│ <rich.table.Table object at 0x7fdd665b5990>                                                                          │
+│                                                                                                                      │
+│ Overall Progress: 0.0%                                                                                               │
+│ Active Tasks: 2                                                                                                      │
+│ Completed Tasks: 0                                                                                                   │
+│ Failed Tasks: 0                                                                                                      │
+│ Total Tasks: 2                                                                                                       │
+│                                                                                                                      │
+│ Performance Metrics:                                                                                                 │
+│ Average Completion Time: 0.0s                                                                                        │
+│ Accuracy Rate: 0.0%                                                                                                  │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯2025-07-19 15:54:40,769 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+╭─────── Principle Software Engineer (PSE) | PROGRESS | Progress Update ───────╮
+│ Using fallback work packages due to: Expecting ',' delimiter: line 236       │
+│ column 16 (char 8156)                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:40,772 - agent_tools - INFO - File written: problem_analysis.json
+2025-07-19 15:54:40,772 - agent_tools - INFO - File written: file_architecture.json
+2025-07-19 15:54:40,773 - agent_tools - INFO - File written: work_packages.json
+╭─────── Principle Software Engineer (PSE) | PROGRESS | Progress Update ───────╮
+│ Systematic problem analysis completed                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:40,773 - progress_tracker - INFO - Completed task: principle_software_engineer_SYSTEMATIC_PROBLEM_SOLVING_20250719_155414
+╭─ Principle Software Engineer (PSE) | STEP_SUCCESS | Step SYSTEMATIC_PROBLEM_SOLVING Success ─╮
+│ Step SYSTEMATIC_PROBLEM_SOLVING completed successfully.                                      │
+│                                                                                              │
+│ Changelog:                                                                                   │
+│ Problem analyzed and work packages created                                                   │
+│                                                                                              │
+│ Artifacts:                                                                                   │
+│ - problem_analysis.json                                                                      │
+│ - file_architecture.json                                                                     │
+│ - work_packages.json                                                                         │
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:40,775 - coding_team - INFO - Problem analysis completed: 1 work packages created
+2025-07-19 15:54:40,775 - coding_team - INFO - Executing 1 work packages
+                                  Work Packages                                   
+╭────────────────────────────────────────────────── Progress Tracker ──────────────────────────────────────────────────╮
+│ <rich.table.Table object at 0x7fdd66591d50>                                                                          │
+│                                                                                                                      │
+│ Overall Progress: 33.3%                                                                                              │
+│ Active Tasks: 2                                                                                                      │
+│ Completed Tasks: 1                                                                                                   │
+│ Failed Tasks: 0                                                                                                      │
+│ Total Tasks: 3                                                                                                       │
+│                                                                                                                      │
+│ Performance Metrics:                                                                                                 │
+│ Average Completion Time: 26.3s                                                                                       │
+│ Accuracy Rate: 100.0%                                                                                                │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯2025-07-19 15:54:42,347 - httpx - INFO - HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2025-07-19 15:54:42,348 - agent_tools - INFO - File written: src/main.py
+2025-07-19 15:54:42,349 - agent.backend_specialist - INFO - Created file: src/main.py
+╭────────────── Backend Specialist | PROGRESS | Progress Update ───────────────╮
+│ Work package WP001 completed: 1 files created                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:42,349 - progress_tracker - INFO - Completed task: backend_specialist_WP: Implement core functionality_20250719_155440
+╭─ Backend Specialist | STEP_SUCCESS | Step WP: Implement core functionality Success ─╮
+│ Step WP: Implement core functionality completed successfully.                       │
+│                                                                                     │
+│ Changelog:                                                                          │
+│ Work package WP001 completed successfully                                           │
+│                                                                                     │
+│ Artifacts:                                                                          │
+│ - src/main.py                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:42,350 - coding_team - INFO - Package WP001 completed successfully by backend_specialist
+2025-07-19 15:54:42,350 - coding_team - INFO - Work package execution completed: 1/1 packages completed
+╭───────────────────────────────────────── 🧠 Intelligent Coding Team Results ─────────────────────────────────────────╮
+│ 🎉 Project Completed Successfully!                                                                                   │
+│                                                                                                                      │
+│ Duration: 28.1 seconds                                                                                               │
+│ Work Packages: 1/1 (100.0% success)                                                                                  │
+│ Files Created: 1                                                                                                     │
+╭────────────────────────────────────────────────── Progress Tracker ──────────────────────────────────────────────────╮
+│ <rich.table.Table object at 0x7fdd66591d50>                                                                          │
+│                                                                                                                      │
+│ Overall Progress: 33.3%                                                                                              │
+│ Active Tasks: 2                                                                                                      │
+│ Completed Tasks: 1                                                                                                   │
+│ Failed Tasks: 0                                                                                                      │
+│ Total Tasks: 3                                                                                                       │
+│                                                                                                                      │
+│ Performance Metrics:                                                                                                 │
+│ Average Completion Time: 26.3s                                                                                       │
+│ Accuracy Rate: 100.0%                                                                                                │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+2025-07-19 15:54:42,354 - agent_tools - INFO - Agent tools shut down

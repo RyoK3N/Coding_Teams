@@ -1,0 +1,124 @@
+{
+  "project_structure": {
+    "src": [
+      "app.py",
+      "models.py",
+      "routes.py",
+      "utils.py"
+    ],
+    "tests": [
+      "test_app.py",
+      "test_models.py",
+      "test_routes.py"
+    ],
+    "config": [
+      "settings.py"
+    ]
+  },
+  "file_purposes": {
+    "app.py": {
+      "purpose": "Main entry point for the API application",
+      "key_functions": [
+        "create_app: Initializes the Flask application and registers the routes",
+        "run_app: Runs the Flask application"
+      ],
+      "dependencies": [
+        "routes.py",
+        "settings.py"
+      ],
+      "agent_assignment": "backend_engineer"
+    },
+    "models.py": {
+      "purpose": "Defines the data models for the book library",
+      "key_functions": [
+        "Book: Represents a book in the library with its attributes",
+        "create_book: Creates a new book instance",
+        "update_book: Updates an existing book instance",
+        "delete_book: Deletes a book instance"
+      ],
+      "dependencies": [],
+      "agent_assignment": "backend_engineer"
+    },
+    "routes.py": {
+      "purpose": "Defines the API endpoints and their corresponding request handlers",
+      "key_functions": [
+        "add_book: Handles the request to add a new book",
+        "delete_book: Handles the request to delete a book",
+        "update_book: Handles the request to update a book",
+        "search_books: Handles the request to search for books"
+      ],
+      "dependencies": [
+        "models.py",
+        "utils.py"
+      ],
+      "agent_assignment": "backend_engineer"
+    },
+    "utils.py": {
+      "purpose": "Provides utility functions for the API",
+      "key_functions": [
+        "validate_book_data: Validates the input data for a book",
+        "search_books_by_criteria: Implements the search functionality for books"
+      ],
+      "dependencies": [
+        "models.py"
+      ],
+      "agent_assignment": "backend_engineer"
+    },
+    "test_app.py": {
+      "purpose": "Contains unit tests for the main application",
+      "key_functions": [
+        "test_create_app: Ensures the Flask application is properly initialized",
+        "test_run_app: Ensures the application can be run"
+      ],
+      "dependencies": [
+        "app.py"
+      ],
+      "agent_assignment": "qa_engineer"
+    },
+    "test_models.py": {
+      "purpose": "Contains unit tests for the book data models",
+      "key_functions": [
+        "test_create_book: Ensures a new book can be created",
+        "test_update_book: Ensures a book can be updated",
+        "test_delete_book: Ensures a book can be deleted"
+      ],
+      "dependencies": [
+        "models.py"
+      ],
+      "agent_assignment": "qa_engineer"
+    },
+    "test_routes.py": {
+      "purpose": "Contains integration tests for the API routes",
+      "key_functions": [
+        "test_add_book: Ensures the add book endpoint works as expected",
+        "test_delete_book: Ensures the delete book endpoint works as expected",
+        "test_update_book: Ensures the update book endpoint works as expected",
+        "test_search_books: Ensures the search books endpoint works as expected"
+      ],
+      "dependencies": [
+        "routes.py",
+        "models.py"
+      ],
+      "agent_assignment": "qa_engineer"
+    },
+    "settings.py": {
+      "purpose": "Defines the configuration settings for the API",
+      "key_functions": [
+        "DEBUG: Enables or disables debug mode",
+        "SQLALCHEMY_DATABASE_URI: Specifies the database connection string"
+      ],
+      "dependencies": [],
+      "agent_assignment": "devops_engineer"
+    }
+  },
+  "critical_path": [
+    "models.py",
+    "utils.py",
+    "routes.py",
+    "app.py",
+    "settings.py",
+    "test_models.py",
+    "test_routes.py",
+    "test_app.py"
+  ]
+}

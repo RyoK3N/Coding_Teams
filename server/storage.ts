@@ -1,8 +1,8 @@
 import { 
-  users, sessions, agents, agentEvents, artifacts,
+  users, sessions, agents, agentEvents, artifacts, workPackages,
   type User, type InsertUser, type Session, type InsertSession,
   type Agent, type InsertAgent, type AgentEvent, type InsertAgentEvent,
-  type Artifact, type InsertArtifact
+  type Artifact, type InsertArtifact, type WorkPackage, type InsertWorkPackage
 } from "@shared/schema";
 
 export interface IStorage {
@@ -30,6 +30,11 @@ export interface IStorage {
   getArtifactsBySession(sessionId: string): Promise<Artifact[]>;
   createArtifact(artifact: InsertArtifact): Promise<Artifact>;
   getArtifact(id: string): Promise<Artifact | undefined>;
+  
+  // Work package operations
+  getWorkPackagesBySession(sessionId: string): Promise<WorkPackage[]>;
+  createWorkPackage(workPackage: InsertWorkPackage): Promise<WorkPackage>;
+  updateWorkPackage(id: string, updates: Partial<WorkPackage>): Promise<WorkPackage | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -38,6 +43,7 @@ export class MemStorage implements IStorage {
   private agents: Map<string, Agent> = new Map();
   private agentEvents: Map<string, AgentEvent> = new Map();
   private artifacts: Map<string, Artifact> = new Map();
+  private workPackages: Map<string, WorkPackage> = new Map();
   private currentUserId = 1;
   private eventSequence = 1;
 
@@ -164,6 +170,38 @@ export class MemStorage implements IStorage {
 
   async getArtifact(id: string): Promise<Artifact | undefined> {
     return this.artifacts.get(id);
+  }
+
+  // Work package operations
+  async getWorkPackagesBySession(sessionId: string): Promise<WorkPackage[]> {
+    return Array.from(this.workPackages.values()).filter(wp => wp.sessionId === sessionId);
+  }
+
+  async createWorkPackage(insertWorkPackage: InsertWorkPackage): Promise<WorkPackage> {
+    const now = new Date();
+    const workPackage: WorkPackage = {
+      ...insertWorkPackage,
+      status: "pending",
+      dependencies: insertWorkPackage.dependencies || [],
+      artifacts: [],
+      createdAt: now,
+      completedAt: null,
+      actualTime: null,
+    };
+    this.workPackages.set(workPackage.id, workPackage);
+    return workPackage;
+  }
+
+  async updateWorkPackage(id: string, updates: Partial<WorkPackage>): Promise<WorkPackage | undefined> {
+    const workPackage = this.workPackages.get(id);
+    if (!workPackage) return undefined;
+    
+    const updatedWorkPackage = { ...workPackage, ...updates };
+    if (updates.status === 'completed' && !workPackage.completedAt) {
+      updatedWorkPackage.completedAt = new Date();
+    }
+    this.workPackages.set(id, updatedWorkPackage);
+    return updatedWorkPackage;
   }
 }
 
