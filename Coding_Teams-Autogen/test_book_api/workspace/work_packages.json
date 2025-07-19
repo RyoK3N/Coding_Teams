@@ -1,0 +1,32 @@
+{
+  "work_packages": [
+    {
+      "package_id": "WP001",
+      "agent": "backend_engineer",
+      "title": "Implement core functionality",
+      "description": "Create the main application logic",
+      "files_to_create": [
+        {
+          "file_path": "src/main.py",
+          "content_specification": {
+            "functions": [
+              {
+                "name": "main",
+                "parameters": [],
+                "return_type": "None",
+                "purpose": "Entry point"
+              }
+            ],
+            "classes": [],
+            "imports": [],
+            "configuration": []
+          }
+        }
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Application runs successfully"
+      ]
+    }
+  ]
+}

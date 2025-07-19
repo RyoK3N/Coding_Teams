@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { SessionPromptForm } from '@/components/session-prompt-form';
+import { ModernSessionForm } from '@/components/modern-session-form';
+import { AnimatedHero } from '@/components/animated-hero';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSession, useSessions } from '@/hooks/use-session';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowRight, Clock, CheckCircle, XCircle, Play } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Clock, CheckCircle, XCircle, Play, Bot, Users, FileText } from 'lucide-react';
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -50,17 +52,41 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
+      {/* Hero Section */}
+      <AnimatedHero />
+      
       {/* Prompt Form */}
-      <SessionPromptForm 
-        onSubmit={handleCreateSession}
-        isLoading={isCreatingSession}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <ModernSessionForm 
+          onSubmit={handleCreateSession}
+          isLoading={isCreatingSession}
+        />
+      </motion.div>
 
       {/* Recent Sessions */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">Recent Sessions</CardTitle>
-        </CardHeader>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-gray-900 dark:text-white flex items-center space-x-2">
+                <Bot className="w-5 h-5 text-primary" />
+                <span>Recent Sessions</span>
+              </CardTitle>
+              {sessionsQuery.data?.length > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {sessionsQuery.data.length} total
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
         <CardContent>
           {sessionsQuery.isLoading ? (
             <div className="space-y-3">
@@ -77,10 +103,15 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-3">
-              {sessionsQuery.data?.map((session: any) => (
-                <div
+              {sessionsQuery.data?.map((session: any, index: number) => (
+                <motion.div
                   key={session.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.01 }}
+                  onClick={() => setLocation(`/session/${session.id}`)}
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
@@ -96,30 +127,41 @@ export default function Home() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                       {session.prompt}
                     </p>
-                    {session.metrics && (
-                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>{session.metrics.totalTasks} tasks</span>
-                        <span>{session.metrics.completedTasks} completed</span>
-                        {session.metrics.failedTasks > 0 && (
-                          <span className="text-red-500">{session.metrics.failedTasks} failed</span>
-                        )}
+                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center space-x-1">
+                        <Users className="w-3 h-3" />
+                        <span>{session.agentCount || 8} agents</span>
                       </div>
-                    )}
+                      <div className="flex items-center space-x-1">
+                        <FileText className="w-3 h-3" />
+                        <span>{session.filesCreated || 0} files</span>
+                      </div>
+                      {session.duration && (
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{Math.round(session.duration)}s</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setLocation(`/session/${session.id}`)}
-                    className="ml-4"
+                    className="ml-4 hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLocation(`/session/${session.id}`);
+                    }}
                   >
                     View <ArrowRight className="ml-1 h-4 w-4" />
                   </Button>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </motion.div>
     </div>
   );
 }

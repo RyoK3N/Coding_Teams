@@ -18,14 +18,20 @@ function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Bot className="h-8 w-8 text-primary" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                AgentForge
-              </h1>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Bot className="h-8 w-8 text-primary animate-pulse" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Coding-Team
+                </h1>
+                <span className="text-xs text-primary font-medium">powered by Synexian</span>
+              </div>
             </div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Multi-Agent Software Generation
+              AI-Powered Multi-Agent Development Platform
             </span>
           </div>
           <div className="flex items-center space-x-4">
