@@ -3,13 +3,20 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   username: text("username").notNull().unique(),
+  email: text("email").unique(),
   password: text("password").notNull(),
+  role: text("role").notNull().default("user"), // user, admin
+  isActive: boolean("is_active").default(true).notNull(),
+  lastLogin: timestamp("last_login"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
   prompt: text("prompt").notNull(),
   status: text("status").notNull().default("pending"), // pending, analyzing, running, completed, failed
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -87,7 +94,15 @@ export const artifacts = pgTable("artifacts", {
 });
 
 // Zod schemas
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  email: true,
+  password: true,
+  role: true,
+});
+
 export const insertSessionSchema = createInsertSchema(sessions).pick({
+  userId: true,
   prompt: true,
   includeTests: true,
   includeDocumentation: true,
@@ -144,9 +159,10 @@ export type InsertAgentEvent = z.infer<typeof insertAgentEventSchema>;
 export type Artifact = typeof artifacts.$inferSelect;
 export type InsertArtifact = z.infer<typeof insertArtifactSchema>;
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+// Login schema
+export const loginSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 // Event payload types
