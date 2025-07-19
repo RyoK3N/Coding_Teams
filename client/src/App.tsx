@@ -1,16 +1,14 @@
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider, useTheme } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Bell, Moon, Sun, Bot, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { auth } from "@/lib/auth";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
-
-// Simple theme context
-const ThemeContext = { theme: 'light', toggleTheme: () => {} };
-const useTheme = () => ThemeContext;
 
 // Simplified Home component for testing
 function Home() {
@@ -144,7 +142,11 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <ThemeProvider>
+        <TooltipProvider>
+          <AppContent />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
