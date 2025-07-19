@@ -46,9 +46,8 @@ export default function Login() {
         throw new Error(result.message || 'Login failed');
       }
 
-      // Store the token
-      localStorage.setItem('auth_token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
+      // Store the token and user data
+      auth.setAuth(result.token, result.user);
 
       toast({
         title: 'Welcome back!',
