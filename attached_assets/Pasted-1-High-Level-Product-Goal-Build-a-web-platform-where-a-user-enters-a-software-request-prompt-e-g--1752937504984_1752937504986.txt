@@ -1,0 +1,358 @@
+1. High‑Level Product Goal
+Build a web platform where a user enters a software request prompt (e.g., “Create a simple password generator CLI tool”). The system spins up the multi‑agent pipeline, streams each agent’s logs into Agent Nodes on the frontend, displays progress metrics, and finally shows the generated code artifacts in an in‑browser editor (with file tree, diffing, download, copy, and optional execute/simulate capability).
+
+2. Core Functional Requirements
+Prompt Submission
+
+Input form with validation (length, profanity, empty).
+
+Persist each “Project Session” with unique ID.
+
+Agent Orchestration & Streaming
+
+Backend orchestrates agents (Principle Engineer + Specialists).
+
+Each agent step emits structured events: task_created, task_started, progress_update, artifact_created, step_success, step_error, team_summary.
+
+Real‑time push to frontend (use WebSockets or Server‑Sent Events; abstract an Event Bus interface).
+
+Agent Node UI
+
+Grid / column layout of agent cards.
+
+Each card: agent name, role badge, status chip (Idle / Running / Succeeded / Failed), progress bar, scrollable live log pane, collapsible artifacts list.
+
+Log line virtualization for performance (>5k lines).
+
+Colored log levels (DEBUG, INFO, WARN, ERROR).
+
+Inline search & filter (by level, keyword, agent).
+
+“Pin important log” feature.
+
+Global Progress Dashboard
+
+Aggregate metrics: total tasks, active, completed, failed, avg completion time, accuracy (mock or computed), timeline chart (sparkline).
+
+Session status banner.
+
+Artifacts & Code Viewer
+
+Left file tree (hierarchical from generated workspace).
+
+Main Monaco/CodeMirror editor with syntax highlighting, diff mode (original vs regenerated), search.
+
+Download all as zip; copy file; highlight newly added lines.
+
+“Open in new tab” raw file.
+
+(Optional) ephemeral sandbox execution of selected scripts with resource limits.
+
+Observability & Logging
+
+Use structured logging library (e.g., Python structlog or loguru + JSON; Node: pino/winston) with correlation IDs: session_id, agent_id, task_id.
+
+Persist logs in database (or time‑series store) and optionally to object storage for archival.
+
+Expose /api/sessions/{id}/logs?agent_id=&level=&after= for pagination.
+
+Implement log rotation & retention policy config.
+
+Persistence
+
+DB schema for: sessions, agents, tasks, artifacts, logs, events, users (if auth enabled later).
+
+Use migrations.
+
+Security & Hardening
+
+Input sanitization & output escaping to prevent XSS (logs may contain arbitrary text).
+
+Rate limiting (per IP) for prompt submission.
+
+CSRF protection for POST endpoints.
+
+API key / token placeholder for protected admin endpoints.
+
+Optional user auth (JWT or session) scaffolding; modular so can be enabled later.
+
+Avoid arbitrary code execution on server unless sandboxed.
+
+Scalability
+
+Separate “Agent Runner” worker from API process (e.g., Celery, Dramatiq, or Async task queue / Redis).
+
+Horizontal scaling guidelines.
+
+Idempotent event emission (dedupe by event UUID).
+
+Backpressure strategy for high log volume (batch + throughput cap).
+
+Configuration
+
+.env for secrets & runtime flags.
+
+Config layering: base, prod, dev.
+
+Feature flags (e.g., enableSandbox, enableAuth).
+
+Testing
+
+Unit tests (agents, log pipeline).
+
+Integration tests for SSE/WebSocket event stream.
+
+Snapshot tests for UI components.
+
+Load test script outline (k6 or Locust) for streaming endpoints.
+
+Deployment
+
+Docker multi‑stage builds (backend + frontend).
+
+Compose file for local.
+
+Helm chart skeleton (values: image, resources, env).
+
+Health (/healthz), readiness (/readyz), metrics (/metrics Prometheus).
+
+CI pipeline outline: lint → test → build → security scan → push → deploy.
+
+Documentation
+
+README.md with architecture diagram (ASCII + mermaid), setup steps, dev scripts, environment variables table.
+
+ARCHITECTURE.md deep dive.
+
+OBSERVABILITY.md.
+
+Inline docstrings.
+
+Performance
+
+Lazy load agent log panes only when visible.
+
+Stream logs incrementally (chunk size).
+
+Client state normalized (Zustand/Redux or React Query subscription).
+
+Avoid rerender storms (log virtualization, selective memoization).
+
+Extensibility
+
+Agent interface: perform(task: TaskContext) -> Async generator[AgentEvent].
+
+Event schema versioning.
+
+Plugin system for new agent types.
+
+3. Technology Stack (Preferred)
+Backend: Python (FastAPI) or Node (NestJS). (Choose one; justify.)
+
+Async / Task Queue: Celery (Redis) or RQ (if Python); BullMQ (Redis) if Node.
+
+Real‑Time Transport: WebSockets (preferred) with fallback to SSE. Abstract service.
+
+Frontend: React + TypeScript + Vite; UI lib: Tailwind + shadcn/ui; Code editor: Monaco.
+
+State Management: React Query (server cache) + lightweight store for ephemeral UI.
+
+Database: PostgreSQL (SQLAlchemy / Prisma). Migration tool (Alembic / Prisma Migrate).
+
+Logging & Metrics: Structured JSON logs; Prometheus client; OpenTelemetry instrumentation (traces for task spans).
+
+Packaging: Docker.
+If technology choice differs, explain and keep same capability set.
+
+4. Data & Event Schemas (Define Explicitly)
+Provide JSON schema (or Pydantic/TypeScript types) for:
+
+csharp
+Copy
+Edit
+AgentEvent {
+  event_id: UUID
+  session_id: string
+  agent_id: string
+  type: "TASK_CREATED" | "TASK_STARTED" | "PROGRESS" | "LOG" | "ARTIFACT" | "STEP_SUCCESS" | "STEP_ERROR" | "SESSION_COMPLETE"
+  timestamp: ISO8601
+  payload: {...}
+}
+LogPayload { level: "DEBUG"|"INFO"|"WARN"|"ERROR", message: string, sequence: number }
+ProgressPayload { percent: float, message?: string }
+ArtifactPayload { file_path: string, size: int, checksum: string, language?: string }
+Ensure forward‑compatibility (e.g., meta bag).
+
+5. Detailed UI Components to Implement
+SessionPromptForm: fields, validation, submit → starts session, redirects to workspace route /session/{id}.
+
+AgentGrid: responsive; skeleton loaders while agents initializing.
+
+AgentCard:
+
+Header (agent name, role icon, status).
+
+Collapsible body with:
+
+Progress bar.
+
+Virtualized LogList.
+
+ArtifactsList (each artifact clickable → opens file in editor).
+
+“Pin Log” section.
+
+GlobalStatusBar: overall progress, counts, action buttons: “Download Zip”, “Regenerate”.
+
+FileExplorer: tree built from artifacts; context menu: copy path, download file.
+
+CodeEditorPanel: Monaco with:
+
+Tabs for multiple files.
+
+Diff toggle (if a file is updated).
+
+Copy, format (Prettier for JS/TS, Black formatting suggestion for Python).
+
+MetricsPanel: charts (sparkline for event rate, bar for tasks).
+
+Notifications/Toasts: errors, completion, artifact arrival.
+
+Theme: dark/light toggle; consistent design tokens.
+
+6. Logging & Observability Implementation Details
+Use middleware to assign X-Request-ID.
+
+Attach correlation IDs to each emitted event/log.
+
+Provide /metrics with:
+
+Counter: agent_events_total{type}
+
+Histogram: task_duration_seconds
+
+Gauge: sessions_active
+
+Provide sampling strategy for debug logs in prod.
+
+7. Security & Compliance
+Validate file paths (no directory traversal).
+
+Content Security Policy baseline.
+
+Sanitization for log rendering (DOMPurify or server‑side escape).
+
+Optional API key check middleware (X-API-Key).
+
+Secrets read only from env; never commit.
+
+8. Error Handling & Resilience
+Central exception handler returns problem+json.
+
+Retry failed agent steps (configurable attempts) with exponential backoff.
+
+Circuit breaker for external LLM calls (if part of agent logic).
+
+Graceful shutdown (finish streaming final events, flush logs).
+
+9. Performance & Load Strategy
+Target: Support {{EXPECTED_CONCURRENT_SESSIONS}} simultaneous sessions; average log emission rate {{LOG_RATE}} lines/sec.
+
+Design queue throughput for spikes (burst 10x).
+
+Provide load test scenario definition.
+
+10. Dev Experience
+make dev spins up stack with hot reload.
+
+Pre‑commit hooks: lint (ruff/eslint), type check (mypy/tsc), formatting.
+
+Example .env.example.
+
+Seed script to replay a historical session for UI testing.
+
+11. Migration Plan from Current CLI
+Extract core generation logic from password_generator.py into reusable service/module.
+
+Replace CLI I/O with event‑driven adapter producing AgentEvents.
+
+Wrap each previous synchronous phase with asynchronous task context.
+
+Add artifact writer service that normalizes file paths, computes checksums.
+
+12. Deliverables
+Produce (in order):
+
+Architecture Overview (markdown + mermaid diagrams: deployment, sequence).
+
+Backend Project Scaffolding (folder tree + key files).
+
+Frontend Project Scaffolding.
+
+Shared Types (TS + Pydantic equivalents).
+
+Event Streaming Implementation (backend endpoints + client hook).
+
+Agent Abstraction Layer (base class + sample concrete agent).
+
+Database Schema & Migration Scripts.
+
+Logging & Metrics Setup.
+
+Core UI Components (incrementally).
+
+Zip Export Endpoint & Implementation.
+
+Tests (list, then implement).
+
+CI Pipeline Config.
+
+Documentation Files.
+
+13. Quality & Acceptance Criteria
+All lint & tests pass (≥ {{TEST_COVERAGE_THRESHOLD}}% coverage).
+
+Can run a full session end‑to‑end producing streamed logs within {{TARGET_SESSION_COMPLETION_TIME}} seconds.
+
+No fatal errors in logs at INFO level during happy path.
+
+Web Vitals: first interaction (TTI) < 3s in dev baseline.
+
+Lighthouse performance ≥ 90 (desktop).
+
+Security scan (dependency + basic SAST) passes.
+
+14. Output Formatting Instructions to AI
+Respond iteratively in phases. Phase 1: Present architecture & rationale (no code). Await confirmation. Once confirmed, proceed to scaffolding. Each code block: filename header comment + code. Avoid filler text. Summaries at end of each phase listing next planned steps.
+
+15. Explicit Constraints
+Use modern Python (≥3.12) or Node (≥20); justify choice once.
+
+Use dependency versions pinned (requirements.txt / package.json with exact versions).
+
+Keep generated files minimal but production‑ready (no toy examples).
+
+All logging structured JSON (no ad‑hoc print).
+
+No unused imports or dead code.
+
+16. Variables to Customize
+arduino
+Copy
+Edit
+{{PROJECT_NAME}} = "AgentForge"
+{{ORG_NAME}} = "NeuroDesigner"
+{{EXPECTED_CONCURRENT_SESSIONS}} = 100
+{{LOG_RATE}} = 50
+{{TEST_COVERAGE_THRESHOLD}} = 80
+{{TARGET_SESSION_COMPLETION_TIME}} = "≤30s"
+If not provided, propose defaults.
+
+17. Stretch Enhancements (Design but optional to implement first pass)
+Live diff view comparing sequential artifact versions.
+
+Session replay (playback of events with time controls).
+
+Multi‑tenant (user ownership).
+
+Webhooks for session completion.
